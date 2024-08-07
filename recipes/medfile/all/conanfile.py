@@ -12,12 +12,14 @@ class MedRecipe(ConanFile):
     options = {
         "shared": [True, False],
         "fPIC": [True, False],
-        "with_mpi": [True, False],
+        "parallel": [True, False],
+        "is_32bit": [True, False],
     }
     default_options = {
         "shared": True,
         "fPIC": True,
-        "with_mpi": False,
+        "parallel": False,
+        "is_32bit": False,
     }
 
     # Sources are located in the same place as this recipe, copy them to the recipe
@@ -30,10 +32,15 @@ class MedRecipe(ConanFile):
 
     def requirements(self):
         self.requires("hdf5/1.10.5")
+        if self.options.parallel:
+            self.requires("openmpi/4.1.0")
+
+    def build_requirements(self):
+        self.tool_requires("cmake/[>=3.24]")
 
     def config_options(self):
         if self.settings.os == "Windows":
-            del self.options.fPIC
+            self.options.rm_safe("fPIC")
 
     def layout(self):
         cmake_layout(self)
@@ -42,9 +49,12 @@ class MedRecipe(ConanFile):
         deps = CMakeDeps(self)
         deps.generate()
         tc = CMakeToolchain(self)
-        tc.cache_variables["MED_MEDINT_TYPE"] = "long"
+        if self.options.is_32bit:
+            tc.cache_variables["MED_MEDINT_TYPE"] = "int"
+        else:
+            tc.cache_variables["MED_MEDINT_TYPE"] = "long"
         tc.cache_variables["MEDFILE_INSTALL_DOC"] = False
-        tc.cache_variables["MEDFILE_USE_MPI"] = False
+        tc.cache_variables["MEDFILE_USE_MPI"] = self.options.parallel
         tc.cache_variables["CMAKE_Fortran_COMPILER"] = ""
         tc.generate()
 
