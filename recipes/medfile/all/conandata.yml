@@ -1,5 +1,5 @@
 sources:
   "4.1.1":
-    url: "https://files.salome-platform.org/Salome/medfile/med-4.1.1.tar.gz"
+    url: "ftp.cea.fr/pub/salome/prerequisites/med-4.1.1.tar.gz"
     sha256: "a082b705d1aafe95d3a231d12c57f0b71df554c253e190acca8d26fc775fb1e6"
     strip_root: true
