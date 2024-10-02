@@ -1,6 +1,6 @@
 from conan import ConanFile
 from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
-from conan.tools.files import get
+from conan.tools import files
 
 
 class MedRecipe(ConanFile):
@@ -28,7 +28,14 @@ class MedRecipe(ConanFile):
     def source(self):
         # get(self, "https://files.salome-platform.org/Salome/medfile/med-4.1.1.tar.gz", strip_root=True)
         print(self.conan_data)
-        get(self, **self.conan_data["sources"][self.version])
+        try:
+            files.get(self, **self.conan_data["sources"][self.version])
+        except Exception:
+            ftp_data = self.conan_data["ftp"][self.version]
+            files.ftp_download(self, host=ftp_data["host"], filename=ftp_data["filename"])
+            files.check_sha256(self, file_path=ftp_data["filename"].split('/')[-1], signature=ftp_data["sha256"])
+            files.unzip(self, ftp_data["filename"].split('/')[-1], strip_root=True)
+            
 
     def requirements(self):
         self.requires("hdf5/1.10.5")
