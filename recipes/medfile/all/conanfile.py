@@ -68,6 +68,8 @@ class MedRecipe(ConanFile):
         tc.cache_variables["MEDFILE_INSTALL_DOC"] = False
         tc.cache_variables["MEDFILE_USE_MPI"] = self.options.parallel
         tc.cache_variables["CMAKE_Fortran_COMPILER"] = ""
+        if self.options.shared:
+            tc.cache_variables["CMAKE_INSTALL_RPATH_USE_LINK_PATH"] = True
         tc.generate()
 
     def build(self):
