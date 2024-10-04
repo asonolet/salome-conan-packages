@@ -46,8 +46,9 @@ class MedRecipe(ConanFile):
         self.tool_requires("cmake/[>=3.24]")
 
     def config_options(self):
-        if self.settings.os == "Windows":
-            self.options.rm_safe("fPIC")
+        # if self.settings.os == "Windows":
+        #     self.options.rm_safe("fPIC")
+        pass
 
     def layout(self):
         cmake_layout(self)
@@ -58,8 +59,12 @@ class MedRecipe(ConanFile):
         tc = CMakeToolchain(self)
         if self.options.is_32bit:
             tc.cache_variables["MED_MEDINT_TYPE"] = "int"
+        elif self.settings.os == "Windows":
+            tc.cache_variables["MED_MEDINT_TYPE"] = "long long"
         else:
             tc.cache_variables["MED_MEDINT_TYPE"] = "long"
+        tc.cache_variables["MEDFILE_BUILD_STATIC_LIBS"] = not self.options.shared
+        tc.cache_variables["MEDFILE_BUILD_SHARED_LIBS"] = self.options.shared
         tc.cache_variables["MEDFILE_INSTALL_DOC"] = False
         tc.cache_variables["MEDFILE_USE_MPI"] = self.options.parallel
         tc.cache_variables["CMAKE_Fortran_COMPILER"] = ""
