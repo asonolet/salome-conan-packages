@@ -1,6 +1,8 @@
+import os
+
 from conan import ConanFile
-from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
 from conan.tools import files
+from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
 
 
 class MedRecipe(ConanFile):
@@ -32,10 +34,15 @@ class MedRecipe(ConanFile):
             files.get(self, **self.conan_data["sources"][self.version])
         except Exception:
             ftp_data = self.conan_data["ftp"][self.version]
-            files.ftp_download(self, host=ftp_data["host"], filename=ftp_data["filename"])
-            files.check_sha256(self, file_path=ftp_data["filename"].split('/')[-1], signature=ftp_data["sha256"])
-            files.unzip(self, ftp_data["filename"].split('/')[-1], strip_root=True)
-            
+            files.ftp_download(
+                self, host=ftp_data["host"], filename=ftp_data["filename"]
+            )
+            files.check_sha256(
+                self,
+                file_path=ftp_data["filename"].split("/")[-1],
+                signature=ftp_data["sha256"],
+            )
+            files.unzip(self, ftp_data["filename"].split("/")[-1], strip_root=True)
 
     def requirements(self):
         self.requires("hdf5/1.10.5")
@@ -80,6 +87,21 @@ class MedRecipe(ConanFile):
     def package(self):
         cmake = CMake(self)
         cmake.install()
+        if self.settings.os == "Windows" and self.options.shared:
+            # DLL should be in bin folder and not under lib folder
+            files.copy(
+                self,
+                pattern="*.dll",
+                dst=os.path.join(self.package_folder, "bin"),
+                src=os.path.join(self.package_folder, "lib"),
+                keep_path=True,
+            )
+            files.rm(
+                self,
+                pattern="*.dll",
+                folder=os.path.join(self.package_folder, "lib"),
+                recursive=False,
+            )
 
     def package_info(self):
         self.cpp_info.libs = ["medC", "medimport"]
